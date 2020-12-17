@@ -1,0 +1,15 @@
+{
+    "name": "MPEG_H_Part3-TEST_VECTORS",
+    "codec": "MPEG-H-Part-3",
+    "description": "MPEG-H Part 3 (3D Audio)",
+    "test_vectors": [
+        {
+            "name": "mpeg-h_3d_audio_mhm1_sample.mp4",
+            "source": "https://samples.ffmpeg.org/A-codecs/MPEGH3D/mpeg-h_3d_audio_mhm1_sample.mp4",
+            "source_checksum": "321c2d3295ec7ed7f0c5066871d447ab",
+            "input_file": "mpeg-h_3d_audio_mhm1_sample.mp4",
+            "output_format": "f32le",
+            "result": "f0e46853c8e943449c46c904985855b3"
+        }
+    ]
+}

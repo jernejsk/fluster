@@ -21,7 +21,7 @@
 import shlex
 from functools import lru_cache
 
-from fluster.codec import Codec, PixelFormat
+from fluster.codec import Codec, Format
 from fluster.decoder import Decoder, register_decoder
 from fluster.utils import file_checksum, run_command, normalize_binary_cmd
 
@@ -31,6 +31,7 @@ PIPELINE_TPL = '{} filesrc location={} ! {} ! {} ! filesink location={}'
 class GStreamer(Decoder):
     '''Base class for GStreamer decoders'''
     decoder_bin = None
+    check_bin = None
     cmd = None
     caps = None
     gst_api = None
@@ -45,12 +46,12 @@ class GStreamer(Decoder):
         self.description = f'{self.provider} {self.codec.value} {self.api} decoder for GStreamer {self.gst_api}'
         self.cmd = normalize_binary_cmd(self.cmd)
 
-    def gen_pipeline(self, input_filepath: str, output_filepath: str, output_format: PixelFormat):
+    def gen_pipeline(self, input_filepath: str, output_filepath: str, output_format: Format):
         '''Generate the GStreamer pipeline used to decode the test vector'''
         # pylint: disable=unused-argument
         return PIPELINE_TPL.format(self.cmd, input_filepath, self.decoder_bin, self.caps, output_filepath)
 
-    def decode(self, input_filepath: str, output_filepath: str, output_format: PixelFormat, timeout: int,
+    def decode(self, input_filepath: str, output_filepath: str, output_format: Format, timeout: int,
                verbose: bool) -> str:
         '''Decode the test vector and do the checksum'''
         pipeline = self.gen_pipeline(
@@ -64,7 +65,8 @@ class GStreamer(Decoder):
         # pylint: disable=broad-except
         try:
             binary = normalize_binary_cmd(f'gst-launch-{self.gst_api}')
-            pipeline = f'{binary} appsrc num-buffers=0 ! {self.decoder_bin} ! fakesink'
+            bin_ = self.check_bin or self.decoder_bin
+            pipeline = f'{binary} appsrc num-buffers=0 ! {bin_} ! fakesink'
             run_command(shlex.split(pipeline), verbose=verbose)
         except Exception:
             return False
@@ -78,8 +80,11 @@ class GStreamer10(GStreamer):
     gst_api = '1.0'
     provider = 'GStreamer'
 
-    def gen_pipeline(self, input_filepath: str, output_filepath: str, output_format: PixelFormat):
-        caps = f'{self.caps} ! videoconvert dither=none ! video/x-raw,format={output_format.to_gst()}'
+    def gen_pipeline(self, input_filepath: str, output_filepath: str, output_format: Format):
+        if self.caps.startswith('video'):
+            caps = f'{self.caps} ! videoconvert dither=none ! video/x-raw,format={output_format.to_gst()}'
+        else:
+            caps = f'{self.caps} ! audioconvert ! audio/x-raw,format={output_format.to_gst()} ! audioresample'
         return PIPELINE_TPL.format(self.cmd, input_filepath, self.decoder_bin, caps, output_filepath)
 
 
@@ -380,3 +385,15 @@ class FluendoFluVAH264DecGst10Decoder(GStreamer10):
     api = 'HW'
     hw_acceleration = True
     name = f'{provider}-{codec.value}-{api}-vah264dec-Gst1.0'
+
+
+@register_decoder
+class FraunhoferMHM1Gst10Decoder(GStreamer10):
+    '''Fraunhofer MPEG-H 3D audio (mhm1) decoder for GStreamer 1.0'''
+    codec = Codec.MPEG_H_Part3
+    decoder_bin = ' qtdemux ! hpi '
+    check_bin = ' hpi '
+    api = 'hpi'
+    provider = 'Fraunhofer'
+    hw_acceleration = True
+    caps = 'audio/x-raw'

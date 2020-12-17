@@ -26,15 +26,34 @@ class Codec(Enum):
     H264 = 'H.264'
     H265 = 'H.265'
     VP8 = 'VP8'
+    MPEG_H_Part3 = 'MPEG-H-Part-3'
 
 
-class PixelFormat(Enum):
+class Format(Enum):
+    '''Generic format'''
+
+    def to_gst(self):
+        '''Return GStreamer audio format'''
+        raise NotImplementedError
+
+
+class AudioFormat(Format):
+    '''Audio format'''
+    f32le = 'f32le'
+
+    def to_gst(self):
+        mapping = {
+            self.f32le: 'F32LE',
+        }
+        return mapping[self]
+
+
+class PixelFormat(Format):
     '''Pixel format'''
     yuv420p = 'yuv420p'
     yuv420p10le = 'yuv420p10le'
 
     def to_gst(self):
-        '''Return GStreamer pixel format'''
         mapping = {
             self.yuv420p: 'I420',
             self.yuv420p10le: 'I420_10LE'

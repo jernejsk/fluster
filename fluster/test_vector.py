@@ -18,7 +18,7 @@
 # Boston, MA 02111-1307, USA.
 
 from enum import Enum
-from fluster.codec import PixelFormat
+from fluster.codec import Format, AudioFormat, PixelFormat
 
 
 class TestVectorResult(Enum):
@@ -35,7 +35,7 @@ class TestVector:
     # pylint: disable=too-many-instance-attributes
 
     def __init__(self, name: str, source: str, source_checksum: str, input_file: str,
-                 output_format: PixelFormat, result: str):
+                 output_format: Format, result: str):
         # JSON members
         self.name = name
         self.source = source
@@ -52,7 +52,11 @@ class TestVector:
     def from_json(cls, data: dict):
         '''Deserialize an instance of TestVector from a json file'''
         if 'output_format' in data:
-            data['output_format'] = PixelFormat(data['output_format'])
+            try:
+                fmt = PixelFormat(data['output_format'])
+            except ValueError:
+                fmt = AudioFormat(data['output_format'])
+            data['output_format'] = fmt
         else:
             data['output_format'] = PixelFormat.yuv420p
         return (data['name'], cls(**data))

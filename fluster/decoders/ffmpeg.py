@@ -149,6 +149,12 @@ class FFmpegH265VdpauDecoder(FFmpegVdpauDecoder):
     codec = Codec.H265
 
 
+@register_decoder
+class FFmpegVP9VdpauDecoder(FFmpegVdpauDecoder):
+    '''FFmpeg VDPAU decoder for H.265'''
+    codec = Codec.VP9
+
+
 class FFmpegDxva2Decoder(FFmpegDecoder):
     '''Generic class for FFmpeg DXVA2 decoder'''
     hw_acceleration = True

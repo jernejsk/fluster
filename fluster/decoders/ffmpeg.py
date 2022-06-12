@@ -27,12 +27,12 @@ from fluster.codec import Codec, OutputFormat
 from fluster.decoder import Decoder, register_decoder
 from fluster.utils import file_checksum, run_command
 
-FFMPEG_TPL = '{} -i {} -vf format=pix_fmts={} -f rawvideo {}'
+FFMPEG_TPL = '{} -i {} -vf format=pix_fmts={} -f md5 {}'
 
 
 class FFmpegDecoder(Decoder):
     '''Generic class for FFmpeg decoder'''
-    binary = 'ffmpeg'
+    binary = '/root/ffmpeg/ffmpeg'
     description = ""
     cmd = ""
     api = ""
@@ -57,7 +57,10 @@ class FFmpegDecoder(Decoder):
         cmd = shlex.split(FFMPEG_TPL.format(
             self.cmd, input_filepath, str(output_format.value), output_filepath))
         run_command(cmd, timeout=timeout, verbose=verbose)
-        return file_checksum(output_filepath)
+        with open(output_filepath, "r") as file:
+            data = file.read().rstrip()
+            return data[4:]
+        return "0"
 
     @lru_cache(maxsize=None)
     def check(self, verbose: bool) -> bool:
@@ -98,6 +101,36 @@ class FFmpegVP8Decoder(FFmpegDecoder):
 @register_decoder
 class FFmpegVP9Decoder(FFmpegDecoder):
     '''FFmpeg SW decoder for VP9'''
+    codec = Codec.VP9
+
+
+class FFmpegDRMDecoder(FFmpegDecoder):
+    '''Generic class for FFmpeg DRM decoder'''
+    hw_acceleration = True
+    api = 'drm'
+
+
+@register_decoder
+class FFmpegH264DRMDecoder(FFmpegDRMDecoder):
+    '''FFmpeg DRM decoder for H.264'''
+    codec = Codec.H264
+
+
+@register_decoder
+class FFmpegH265DRMDecoder(FFmpegDRMDecoder):
+    '''FFmpeg DRM decoder for H.265'''
+    codec = Codec.H265
+
+
+@register_decoder
+class FFmpegVP8DRMDecoder(FFmpegDRMDecoder):
+    '''FFmpeg DRM decoder for VP8'''
+    codec = Codec.VP8
+
+
+@register_decoder
+class FFmpegVP9DRMDecoder(FFmpegDRMDecoder):
+    '''FFmpeg DRM decoder for VP9'''
     codec = Codec.VP9
 
 

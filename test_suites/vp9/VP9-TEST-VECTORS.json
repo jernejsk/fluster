@@ -2426,6 +2426,14 @@
             "input_file": "vp90-2-22-svc_1280x720_3.ivf",
             "output_format": "yuv420p",
             "result": "fbdd9f9bb30c27434d50c1258fe80491"
+        },
+        {
+            "name": "vp92-2-20-10bit-yuv420.webm",
+            "source": "https://storage.googleapis.com/downloads.webmproject.org/test_data/libvpx/vp92-2-20-10bit-yuv420.webm",
+            "source_checksum": "d3f9379a229d170da71191da63c47794",
+            "input_file": "vp92-2-20-10bit-yuv420.webm",
+            "output_format": "yuv420p10le",
+            "result": "a16b99df180c584e8db2ffeda987d293"
         }
     ]
 }
